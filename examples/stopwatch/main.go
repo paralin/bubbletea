@@ -22,6 +22,7 @@ type keymap struct {
 	start key.Binding
 	stop  key.Binding
 	reset key.Binding
+	quit  key.Binding
 }
 
 func (m model) Init() tea.Cmd {
@@ -44,19 +45,20 @@ func (m model) helpView() string {
 		m.keymap.start,
 		m.keymap.stop,
 		m.keymap.reset,
+		m.keymap.quit,
 	})
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		switch {
+		case key.Matches(msg, m.keymap.quit):
 			m.quitting = true
 			return m, tea.Quit
-		case "r":
+		case key.Matches(msg, m.keymap.reset):
 			return m, m.stopwatch.Reset()
-		case "s":
+		case key.Matches(msg, m.keymap.start), key.Matches(msg, m.keymap.stop):
 			m.keymap.stop.SetEnabled(!m.stopwatch.Running())
 			m.keymap.start.SetEnabled(m.stopwatch.Running())
 			return m, m.stopwatch.Toggle()
@@ -82,6 +84,10 @@ func main() {
 			reset: key.NewBinding(
 				key.WithKeys("r"),
 				key.WithHelp("r", "reset"),
+			),
+			quit: key.NewBinding(
+				key.WithKeys("ctrl+c", "q"),
+				key.WithHelp("q", "quit"),
 			),
 		},
 		help: help.NewModel(),
