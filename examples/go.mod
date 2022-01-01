@@ -2,6 +2,10 @@ module examples
 
 go 1.17
 
+replace github.com/containerd/console => github.com/paralin/containerd-console v1.0.4-0.20230526080657-7363311e2d7f // shim-js
+
+replace github.com/charmbracelet/bubbletea => ../
+
 require (
 	github.com/charmbracelet/bubbles v0.15.1-0.20230306155959-3372cf1aea2b
 	github.com/charmbracelet/bubbletea v0.24.0
@@ -37,10 +41,8 @@ require (
 	github.com/yuin/goldmark v1.5.2 // indirect
 	github.com/yuin/goldmark-emoji v1.0.1 // indirect
 	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sync v0.1.0 // indirect
+	golang.org/x/sync v0.2.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/term v0.6.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 )
-
-replace github.com/charmbracelet/bubbletea => ../
