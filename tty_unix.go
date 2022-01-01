@@ -27,7 +27,7 @@ func (p *Program) initInput() error {
 // the terminal receives a keypress rather than appearing promptly after the
 // program exits.
 func (p *Program) restoreInput() error {
-	if p.console != nil {
+	if p.console != nil && !DisableConsole {
 		return p.console.Reset()
 	}
 	return nil
