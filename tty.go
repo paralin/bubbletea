@@ -1,8 +1,5 @@
 package tea
 
-// DisableConsole globally disables the console.
-var DisableConsole bool
-
 func (p *Program) initTerminal() error {
 	err := p.initInput()
 	if err != nil {
