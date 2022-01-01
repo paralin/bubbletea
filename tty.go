@@ -13,7 +13,7 @@ func (p *Program) initTerminal() error {
 		return err
 	}
 
-	if p.console != nil {
+	if p.console != nil && !DisableConsole {
 		err = p.console.SetRaw()
 		if err != nil {
 			return err
@@ -29,7 +29,7 @@ func (p *Program) initTerminal() error {
 func (p Program) restoreTerminalState() error {
 	showCursor(p.output)
 
-	if p.console != nil {
+	if p.console != nil && !DisableConsole {
 		err := p.console.Reset()
 		if err != nil {
 			return err

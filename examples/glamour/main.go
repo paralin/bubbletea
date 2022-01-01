@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -117,7 +118,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := tea.NewProgram(model).Start(); err != nil {
+	if err := tea.NewProgram(model).Start(context.Background()); err != nil {
 		fmt.Println("Bummer, there's been an error:", err)
 		os.Exit(1)
 	}

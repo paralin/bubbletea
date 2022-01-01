@@ -1,6 +1,8 @@
 module github.com/charmbracelet/bubbletea
 
-go 1.13
+go 1.16
+
+replace github.com/containerd/console => github.com/paralin/containerd-console v1.0.4-0.20220116023838-20ef04a44192 // shim-js
 
 require (
 	github.com/containerd/console v1.0.3

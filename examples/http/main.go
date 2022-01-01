@@ -3,6 +3,7 @@ package main
 // A simple program that makes a GET request and prints the response status.
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -26,7 +27,7 @@ func (e errMsg) Error() string { return e.error.Error() }
 
 func main() {
 	p := tea.NewProgram(model{})
-	if err := p.Start(); err != nil {
+	if err := p.Start(context.Background()); err != nil {
 		log.Fatal(err)
 	}
 }

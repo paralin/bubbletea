@@ -9,6 +9,8 @@ import (
 	"github.com/containerd/console"
 )
 
+const ttySupported = true
+
 func (p *Program) initInput() error {
 	// If input's a file, use console to manage it
 	if f, ok := p.input.(*os.File); ok {
@@ -27,7 +29,7 @@ func (p *Program) initInput() error {
 // the terminal receives a keypress rather than appearing promptly after the
 // program exits.
 func (p *Program) restoreInput() error {
-	if p.console != nil {
+	if p.console != nil && !DisableConsole {
 		return p.console.Reset()
 	}
 	return nil

@@ -19,3 +19,4 @@ tutorials/commands/commands
 .idea
 coverage.txt
 README.md.*
+vendor/

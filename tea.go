@@ -14,10 +14,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"runtime/debug"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/containerd/console"
@@ -254,8 +252,8 @@ func NewProgram(model Model, opts ...ProgramOption) *Program {
 	p := &Program{
 		mtx:          &sync.Mutex{},
 		initialModel: model,
-		output:       os.Stdout,
-		input:        os.Stdin,
+		output:       DefaultOutput,
+		input:        DefaultInput,
 		msgs:         make(chan Msg),
 		CatchPanics:  true,
 		killc:        make(chan bool, 1),
@@ -270,13 +268,15 @@ func NewProgram(model Model, opts ...ProgramOption) *Program {
 }
 
 // StartReturningModel initializes the program. Returns the final model.
-func (p *Program) StartReturningModel() (Model, error) {
-	cmds := make(chan Cmd)
-	p.errs = make(chan error)
+func (p *Program) StartReturningModel(rctx context.Context) (Model, error) {
+	var (
+		cmds = make(chan Cmd)
+		errs = make(chan error)
+	)
+	p.errs = errs
 
 	// Channels for managing goroutine lifecycles.
 	var (
-		sigintLoopDone = make(chan struct{})
 		cmdLoopDone    = make(chan struct{})
 		resizeLoopDone = make(chan struct{})
 		initSignalDone = make(chan struct{})
@@ -293,17 +293,19 @@ func (p *Program) StartReturningModel() (Model, error) {
 			}
 			<-cmdLoopDone
 			<-resizeLoopDone
-			<-sigintLoopDone
 			<-initSignalDone
 		}
 	)
 
-	var cancelContext context.CancelFunc
-	p.ctx, cancelContext = context.WithCancel(context.Background())
+	if rctx == nil {
+		rctx = context.Background()
+	}
+	ctx, cancelContext := context.WithCancel(rctx)
+	p.ctx = ctx
 	defer cancelContext()
 
 	switch {
-	case p.startupOptions.has(withInputTTY):
+	case p.startupOptions.has(withInputTTY) && ttySupported:
 		// Open a new TTY, by request
 		f, err := openInputTTY()
 		if err != nil {
@@ -314,7 +316,7 @@ func (p *Program) StartReturningModel() (Model, error) {
 
 		p.input = f
 
-	case !p.startupOptions.has(withCustomInput):
+	case !p.startupOptions.has(withCustomInput) && ttySupported:
 		// If the user hasn't set a custom input, and input's not a terminal,
 		// open a TTY so we can capture input as normal. This will allow things
 		// to "just work" in cases where data was piped or redirected into this
@@ -336,32 +338,10 @@ func (p *Program) StartReturningModel() (Model, error) {
 		defer f.Close() // nolint:errcheck
 
 		p.input = f
+	default:
+		// tty not supported: use globally set input
+		p.input = DefaultInput
 	}
-
-	// Listen for SIGINT. Note that in most cases ^C will not send an
-	// interrupt because the terminal will be in raw mode and thus capture
-	// that keystroke and send it along to Program.Update. If input is not a
-	// TTY, however, ^C will be caught here.
-	go func() {
-		sig := make(chan os.Signal, 1)
-		signal.Notify(sig, syscall.SIGINT)
-		defer func() {
-			signal.Stop(sig)
-			close(sigintLoopDone)
-		}()
-
-		for {
-			select {
-			case <-p.ctx.Done():
-				return
-			case <-sig:
-				if !p.ignoreSignals {
-					p.msgs <- quitMsg{}
-					return
-				}
-			}
-		}
-	}()
 
 	if p.CatchPanics {
 		defer func() {
@@ -426,7 +406,7 @@ func (p *Program) StartReturningModel() (Model, error) {
 	}
 	defer p.cancelReader.Close() // nolint:errcheck
 
-	if f, ok := p.output.(*os.File); ok && isatty.IsTerminal(f.Fd()) {
+	if f, ok := p.output.(*os.File); ok && ttySupported {
 		// Get the initial terminal size and send it to the program.
 		go func() {
 			w, h, err := term.GetSize(int(f.Fd()))
@@ -545,8 +525,8 @@ func (p *Program) StartReturningModel() (Model, error) {
 }
 
 // Start initializes the program. Ignores the final model.
-func (p *Program) Start() error {
-	_, err := p.StartReturningModel()
+func (p *Program) Start(ctx context.Context) error {
+	_, err := p.StartReturningModel(ctx)
 	return err
 }
 

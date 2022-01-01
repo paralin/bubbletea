@@ -2,6 +2,10 @@ module examples
 
 go 1.13
 
+replace github.com/containerd/console => github.com/paralin/containerd-console v1.0.4-0.20220116023838-20ef04a44192 // shim-js
+
+replace github.com/charmbracelet/bubbletea => ../
+
 require (
 	github.com/charmbracelet/bubbles v0.13.0
 	github.com/charmbracelet/bubbletea v0.22.0
@@ -11,7 +15,5 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mattn/go-isatty v0.0.14
 	github.com/muesli/reflow v0.3.0
-	github.com/muesli/termenv v0.12.1-0.20220615005108-4e9068de9898
+	github.com/muesli/termenv v0.12.0
 )
-
-replace github.com/charmbracelet/bubbletea => ../

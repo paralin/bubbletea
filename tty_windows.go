@@ -11,6 +11,8 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+const ttySupported = true
+
 func (p *Program) initInput() error {
 	// If input's a file, use console to manage it
 	if f, ok := p.input.(*os.File); ok {
