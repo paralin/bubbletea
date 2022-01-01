@@ -237,8 +237,8 @@ func NewProgram(model Model, opts ...ProgramOption) *Program {
 	p := &Program{
 		mtx:          &sync.Mutex{},
 		initialModel: model,
-		output:       os.Stdout,
-		input:        os.Stdin,
+		output:       DefaultOutput,
+		input:        DefaultInput,
 		msgs:         make(chan Msg),
 		CatchPanics:  true,
 	}
@@ -287,7 +287,7 @@ func (p *Program) StartReturningModel() (Model, error) {
 	defer cancelContext()
 
 	switch {
-	case p.startupOptions.has(withInputTTY):
+	case p.startupOptions.has(withInputTTY) && ttySupported:
 		// Open a new TTY, by request
 		f, err := openInputTTY()
 		if err != nil {
@@ -298,7 +298,7 @@ func (p *Program) StartReturningModel() (Model, error) {
 
 		p.input = f
 
-	case !p.startupOptions.has(withCustomInput):
+	case !p.startupOptions.has(withCustomInput) && ttySupported:
 		// If the user hasn't set a custom input, and input's not a terminal,
 		// open a TTY so we can capture input as normal. This will allow things
 		// to "just work" in cases where data was piped or redirected into this
@@ -320,6 +320,9 @@ func (p *Program) StartReturningModel() (Model, error) {
 		defer f.Close() // nolint:errcheck
 
 		p.input = f
+	default:
+		// tty not supported: use globally set input
+		p.input = DefaultInput
 	}
 
 	// Listen for SIGINT. Note that in most cases ^C will not send an

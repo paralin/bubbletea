@@ -31,7 +31,9 @@ func WithInput(input io.Reader) ProgramOption {
 // WithInputTTY open a new TTY for input (or console input device on Windows).
 func WithInputTTY() ProgramOption {
 	return func(p *Program) {
-		p.startupOptions |= withInputTTY
+		if ttySupported {
+			p.startupOptions |= withInputTTY
+		}
 	}
 }
 
