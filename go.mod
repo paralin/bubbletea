@@ -9,7 +9,7 @@ require (
 	github.com/mattn/go-isatty v0.0.14
 	github.com/muesli/ansi v0.0.0-20211031195517-c9f0611b6c70
 	github.com/muesli/reflow v0.3.0
-	github.com/muesli/termenv v0.9.0
+	github.com/muesli/termenv v0.11.0
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 )
